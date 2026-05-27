@@ -1,0 +1,1011 @@
+<!-- ============================================ -->
+<!-- BANTU HALII - USER PROFILE PAGE -->
+<!-- templates/profile.html -->
+<!-- ============================================ -->
+{% extends "base.html" %}
+
+{% block title %}Bantu Halii - {{ user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-wrapper">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-cover">
+                <div class="cover-gradient"></div>
+                <div class="cover-pattern"></div>
+            </div>
+            <div class="profile-header-content">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-wrapper">
+                        <img src="{{ user.profile_pic or url_for('static', filename='images/default-avatar.png') }}" 
+                             alt="{{ user.username }}" 
+                             class="profile-avatar"
+                             id="profile-avatar-img"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ user.username[0] }}&background=4ECDC4&color=fff&size=150'">
+                        <button class="avatar-upload-btn" onclick="document.getElementById('avatar-upload').click()" title="Change profile picture">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <input type="file" 
+                               id="avatar-upload" 
+                               accept="image/*" 
+                               style="display: none;" 
+                               onchange="uploadAvatar(event)">
+                    </div>
+                    <div class="profile-status-indicator {{ 'online' if user.is_online else 'offline' }}" 
+                         id="profile-status-indicator"
+                         title="{{ 'Online' if user.is_online else 'Offline' }}"></div>
+                </div>
+                <div class="profile-info-section">
+                    <div class="profile-name-row">
+                        <h1 class="profile-username" id="profile-username">{{ user.username }}</h1>
+                        <button class="btn-icon edit-btn" onclick="editField('username')" title="Edit username">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <p class="profile-status" id="profile-status-display">{{ user.status or 'Hey there! I am using Bantu Halii 🌍' }}</p>
+                    <p class="profile-bio" id="profile-bio-display">{{ user.bio or 'No bio yet' }}</p>
+                    <div class="profile-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            Joined {{ user.created_at.strftime('%B %Y') if user.created_at else 'Recently' }}
+                        </span>
+                        {% if user.phone_number %}
+                        <span class="meta-item">
+                            <i class="fas fa-phone"></i>
+                            {{ user.phone_number }}
+                        </span>
+                        {% endif %}
+                        {% if user.email %}
+                        <span class="meta-item">
+                            <i class="fas fa-envelope"></i>
+                            {{ user.email }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Navigation -->
+        <nav class="profile-nav">
+            <button class="profile-nav-item active" onclick="switchProfileTab('overview')">
+                <i class="fas fa-user"></i> Overview
+            </button>
+            <button class="profile-nav-item" onclick="switchProfileTab('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+            <button class="profile-nav-item" onclick="switchProfileTab('privacy')">
+                <i class="fas fa-shield-alt"></i> Privacy
+            </button>
+            <button class="profile-nav-item" onclick="switchProfileTab('devices')">
+                <i class="fas fa-mobile-alt"></i> Devices
+            </button>
+            <button class="profile-nav-item" onclick="switchProfileTab('blocked')">
+                <i class="fas fa-ban"></i> Blocked
+            </button>
+        </nav>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+            <!-- Overview Tab -->
+            <div class="profile-tab active" id="tab-overview">
+                <div class="profile-grid">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon messages-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ stats.total_messages_sent }}</span>
+                                <span class="stat-label">Messages Sent</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon rooms-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ stats.total_rooms }}</span>
+                                <span class="stat-label">Active Rooms</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon contacts-icon">
+                                <i class="fas fa-address-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ stats.total_contacts }}</span>
+                                <span class="stat-label">Contacts</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon media-icon">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ stats.total_media_shared }}</span>
+                                <span class="stat-label">Media Shared</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon days-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ stats.account_age_days }}</span>
+                                <span class="stat-label">Days Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="profile-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-info-circle"></i> Account Information</h3>
+                            <button class="btn-text" onclick="editAllInfo()">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <form id="profile-info-form" onsubmit="saveProfileInfo(event)">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="info-username">Username</label>
+                                        <input type="text" 
+                                               id="info-username" 
+                                               name="username" 
+                                               class="form-control" 
+                                               value="{{ user.username }}"
+                                               disabled>
+                                        <small class="form-text">Usernames can only be changed once every 30 days</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="info-email">Email Address</label>
+                                        <input type="email" 
+                                               id="info-email" 
+                                               name="email" 
+                                               class="form-control" 
+                                               value="{{ user.email or '' }}"
+                                               placeholder="Add your email address">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="info-phone">Phone Number</label>
+                                        <input type="tel" 
+                                               id="info-phone" 
+                                               name="phone_number" 
+                                               class="form-control" 
+                                               value="{{ user.phone_number or '' }}"
+                                               placeholder="Add your phone number">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="info-status">Status</label>
+                                        <input type="text" 
+                                               id="info-status" 
+                                               name="status" 
+                                               class="form-control" 
+                                               value="{{ user.status }}"
+                                               maxlength="200"
+                                               placeholder="What's on your mind?">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="info-bio">Bio</label>
+                                        <textarea id="info-bio" 
+                                                  name="bio" 
+                                                  class="form-control" 
+                                                  rows="3"
+                                                  maxlength="500"
+                                                  placeholder="Tell us about yourself">{{ user.bio or '' }}</textarea>
+                                        <small class="form-text"><span id="bio-count">0</span>/500 characters</small>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-outline" onclick="resetProfileInfo()">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="profile-tab" id="tab-settings" style="display: none;">
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-cog"></i> Application Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="settings-form" onsubmit="saveSettings(event)">
+                            <div class="settings-section">
+                                <h4>Notifications</h4>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Push Notifications</span>
+                                        <span class="setting-description">Receive notifications for new messages and activities</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" 
+                                               name="notifications_enabled" 
+                                               {{ 'checked' if user.notifications_enabled else '' }}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Message Sounds</span>
+                                        <span class="setting-description">Play sound when receiving new messages</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="message_sounds" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Vibration</span>
+                                        <span class="setting-description">Vibrate on new notifications</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="vibration" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <h4>Appearance</h4>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Dark Mode</span>
+                                        <span class="setting-description">Switch between light and dark theme</span>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" 
+                                               name="dark_mode" 
+                                               {{ 'checked' if user.dark_mode else '' }}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Font Size</span>
+                                        <span class="setting-description">Adjust the text size in chats</span>
+                                    </div>
+                                    <select class="form-control setting-select" name="font_size">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Chat Wallpaper</span>
+                                        <span class="setting-description">Customize your chat background</span>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" onclick="changeWallpaper()">
+                                        <i class="fas fa-image"></i> Change
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <h4>Language</h4>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">App Language</span>
+                                        <span class="setting-description">Choose your preferred language</span>
+                                    </div>
+                                    <select class="form-control setting-select" name="language">
+                                        <option value="en" {{ 'selected' if user.language == 'en' else '' }}>English</option>
+                                        <option value="sw" {{ 'selected' if user.language == 'sw' else '' }}>Kiswahili</option>
+                                        <option value="fr" {{ 'selected' if user.language == 'fr' else '' }}>Français</option>
+                                        <option value="pt" {{ 'selected' if user.language == 'pt' else '' }}>Português</option>
+                                        <option value="ar" {{ 'selected' if user.language == 'ar' else '' }}>العربية</option>
+                                        <option value="am" {{ 'selected' if user.language == 'am' else '' }}>አማርኛ</option>
+                                        <option value="zu" {{ 'selected' if user.language == 'zu' else '' }}>isiZulu</option>
+                                        <option value="ha" {{ 'selected' if user.language == 'ha' else '' }}>Hausa</option>
+                                        <option value="yo" {{ 'selected' if user.language == 'yo' else '' }}>Yorùbá</option>
+                                        <option value="ig" {{ 'selected' if user.language == 'ig' else '' }}>Igbo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <h4>Data & Storage</h4>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Auto-download Media</span>
+                                        <span class="setting-description">Automatically download photos, videos, and documents</span>
+                                    </div>
+                                    <select class="form-control setting-select" name="auto_download">
+                                        <option value="wifi">Wi-Fi only</option>
+                                        <option value="always">Always</option>
+                                        <option value="never">Never</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-label">Storage Usage</span>
+                                        <span class="setting-description">Manage your stored media and files</span>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" onclick="manageStorage()">
+                                        <i class="fas fa-database"></i> Manage
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy Tab -->
+            <div class="profile-tab" id="tab-privacy" style="display: none;">
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-shield-alt"></i> Privacy & Security</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="settings-section">
+                            <h4>Privacy</h4>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Last Seen</span>
+                                    <span class="setting-description">Show when you were last active</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" 
+                                           name="last_seen_visible" 
+                                           {{ 'checked' if user.last_seen_visible else '' }}>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Read Receipts</span>
+                                    <span class="setting-description">Show when you've read messages</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" 
+                                           name="read_receipts_enabled" 
+                                           {{ 'checked' if user.read_receipts_enabled else '' }}>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Profile Photo</span>
+                                    <span class="setting-description">Who can see your profile photo</span>
+                                </div>
+                                <select class="form-control setting-select" name="profile_photo_privacy">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="contacts">My Contacts</option>
+                                    <option value="nobody">Nobody</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">About</span>
+                                    <span class="setting-description">Who can see your about info</span>
+                                </div>
+                                <select class="form-control setting-select" name="about_privacy">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="contacts">My Contacts</option>
+                                    <option value="nobody">Nobody</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Groups</span>
+                                    <span class="setting-description">Who can add you to groups</span>
+                                </div>
+                                <select class="form-control setting-select" name="group_privacy">
+                                    <option value="everyone">Everyone</option>
+                                    <option value="contacts">My Contacts</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4>Security</h4>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Two-Factor Authentication</span>
+                                    <span class="setting-description">Add an extra layer of security to your account</span>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="setup2FA()">
+                                    {{ 'Enabled' if user.two_factor_enabled else 'Set Up' }}
+                                </button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Change Password</span>
+                                    <span class="setting-description">Update your account password</span>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="showPasswordChangeModal()">
+                                    <i class="fas fa-key"></i> Change
+                                </button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Active Sessions</span>
+                                    <span class="setting-description">Manage your logged-in devices</span>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="switchProfileTab('devices')">
+                                    <i class="fas fa-mobile-alt"></i> View
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section danger-zone">
+                            <h4>Danger Zone</h4>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <span class="setting-label">Delete Account</span>
+                                    <span class="setting-description">Permanently delete your account and all data</span>
+                                </div>
+                                <button class="btn btn-danger btn-sm" onclick="showDeleteAccountModal()">
+                                    <i class="fas fa-trash"></i> Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devices Tab -->
+            <div class="profile-tab" id="tab-devices" style="display: none;">
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-mobile-alt"></i> Active Devices</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="devices-list" id="devices-list">
+                            {% if devices %}
+                                {% for device in devices %}
+                                <div class="device-item" id="device-{{ device.device_id }}">
+                                    <div class="device-icon">
+                                        <i class="fas fa-{{ 'mobile-alt' if device.device_type == 'mobile' else 'tablet' if device.device_type == 'tablet' else 'desktop' }}"></i>
+                                    </div>
+                                    <div class="device-info">
+                                        <h4>{{ device.device_name }}</h4>
+                                        <span class="device-details">
+                                            {{ device.platform|capitalize }} • {{ device.device_type|capitalize }}
+                                        </span>
+                                        <span class="device-last-active">
+                                            Last active: {{ device.last_active.strftime('%B %d, %Y at %H:%M') if device.last_active else 'Unknown' }}
+                                        </span>
+                                        <span class="device-ip">IP: {{ device.ip_address }}</span>
+                                    </div>
+                                    <div class="device-status">
+                                        {% if device.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="device-actions">
+                                        <button class="btn btn-outline btn-sm" onclick="logoutDevice('{{ device.device_id }}')">
+                                            <i class="fas fa-sign-out-alt"></i> Logout
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="devices-empty">
+                                <i class="fas fa-mobile-alt"></i>
+                                <p>No devices found</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blocked Users Tab -->
+            <div class="profile-tab" id="tab-blocked" style="display: none;">
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-ban"></i> Blocked Users</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="blocked-list" id="blocked-list">
+                            {% if blocked_users %}
+                                {% for blocked in blocked_users %}
+                                <div class="blocked-item" id="blocked-{{ blocked.id }}">
+                                    <img src="{{ blocked.profile_pic }}" 
+                                         alt="{{ blocked.username }}" 
+                                         class="blocked-avatar"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ blocked.username[0] }}&background=FF6B6B&color=fff&size=40'">
+                                    <div class="blocked-info">
+                                        <h4>{{ blocked.username }}</h4>
+                                        <span>{{ blocked.phone_number or '' }}</span>
+                                        <span class="blocked-date">Blocked on {{ blocked.blocked_at }}</span>
+                                        {% if blocked.reason %}
+                                        <span class="blocked-reason">Reason: {{ blocked.reason }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="blocked-actions">
+                                        <button class="btn btn-primary btn-sm" onclick="unblockUser({{ blocked.id }})">
+                                            <i class="fas fa-unlock"></i> Unblock
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="blocked-empty">
+                                <i class="fas fa-ban"></i>
+                                <p>No blocked users</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal" id="password-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Change Password</h3>
+            <button class="btn-icon" onclick="closeModal('password-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="password-form" onsubmit="changePassword(event)">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" 
+                           id="current-password" 
+                           class="form-control" 
+                           required
+                           placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" 
+                           id="new-password" 
+                           class="form-control" 
+                           required
+                           minlength="8"
+                           placeholder="Enter new password"
+                           oninput="checkPasswordStrength()">
+                    <div class="password-strength" id="password-strength-bar">
+                        <div class="strength-bar"></div>
+                        <span class="strength-text"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-new-password">Confirm New Password</label>
+                    <input type="password" 
+                           id="confirm-new-password" 
+                           class="form-control" 
+                           required
+                           minlength="8"
+                           placeholder="Confirm new password"
+                           oninput="checkPasswordMatch()">
+                    <div class="password-match" id="password-match-indicator"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('password-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal" id="delete-account-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Account</h3>
+            <button class="btn-icon" onclick="closeModal('delete-account-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="delete-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>Warning!</h4>
+                <p>This action cannot be undone. All your messages, contacts, and data will be permanently deleted.</p>
+                <ul>
+                    <li>Your account will be deactivated for 30 days</li>
+                    <li>After 30 days, all data will be permanently deleted</li>
+                    <li>You can reactivate your account within 30 days by logging in</li>
+                </ul>
+            </div>
+            <form id="delete-account-form" onsubmit="deleteAccount(event)">
+                <div class="form-group">
+                    <label for="delete-password">Enter your password to confirm</label>
+                    <input type="password" 
+                           id="delete-password" 
+                           class="form-control" 
+                           required
+                           placeholder="Enter your password">
+                </div>
+                <div class="form-group">
+                    <label for="delete-confirmation">Type DELETE to confirm</label>
+                    <input type="text" 
+                           id="delete-confirmation" 
+                           class="form-control" 
+                           required
+                           placeholder="Type DELETE">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('delete-account-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete My Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Profile tab switching
+    function switchProfileTab(tabName) {
+        // Update nav items
+        document.querySelectorAll('.profile-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        // Show selected tab
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        document.getElementById(`tab-${tabName}`).style.display = 'block';
+    }
+
+    // Upload avatar
+    function uploadAvatar(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image must be less than 5MB');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profile-avatar-img').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        // Upload
+        const formData = new FormData();
+        formData.append('profile_pic', file);
+        
+        fetch('/upload/profile_pic', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Profile picture updated successfully!', 'success');
+            } else {
+                showToast(data.error || 'Upload failed', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showToast('Failed to upload profile picture', 'error');
+        });
+    }
+
+    // Save profile info
+    function saveProfileInfo(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('profile-info-form');
+        const formData = new FormData(form);
+        
+        fetch('/profile/update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Profile updated successfully!', 'success');
+                // Update displayed info
+                if (data.user) {
+                    document.getElementById('profile-username').textContent = data.user.username;
+                    document.getElementById('profile-status-display').textContent = data.user.status;
+                    document.getElementById('profile-bio-display').textContent = data.user.bio || 'No bio yet';
+                }
+            } else {
+                showToast(data.error || 'Update failed', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Update error:', error);
+            showToast('Failed to update profile', 'error');
+        });
+    }
+
+    // Reset profile info
+    function resetProfileInfo() {
+        if (confirm('Are you sure you want to reset your profile information?')) {
+            document.getElementById('profile-info-form').reset();
+        }
+    }
+
+    // Save settings
+    function saveSettings(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('settings-form');
+        const formData = new FormData(form);
+        
+        fetch('/profile/update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Settings saved successfully!', 'success');
+                
+                // Apply dark mode immediately
+                if (data.user && data.user.dark_mode !== undefined) {
+                    document.documentElement.setAttribute('data-theme', 
+                        data.user.dark_mode ? 'dark' : 'light');
+                }
+            } else {
+                showToast(data.error || 'Failed to save settings', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Settings error:', error);
+            showToast('Failed to save settings', 'error');
+        });
+    }
+
+    // Change password
+    function changePassword(event) {
+        event.preventDefault();
+        
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-new-password').value;
+        
+        if (newPassword !== confirmPassword) {
+            showToast('Passwords do not match', 'error');
+            return;
+        }
+        
+        fetch('/profile/change_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                closeModal('password-modal');
+                document.getElementById('password-form').reset();
+            } else {
+                showToast(data.error || 'Failed to change password', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Password change error:', error);
+            showToast('Failed to change password', 'error');
+        });
+    }
+
+    // Delete account
+    function deleteAccount(event) {
+        event.preventDefault();
+        
+        const password = document.getElementById('delete-password').value;
+        const confirmation = document.getElementById('delete-confirmation').value;
+        
+        if (confirmation !== 'DELETE') {
+            showToast('Please type DELETE to confirm', 'error');
+            return;
+        }
+        
+        fetch('/profile/delete_account', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: password,
+                confirmation: confirmation
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'info');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                showToast(data.error || 'Failed to delete account', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Delete account error:', error);
+            showToast('Failed to delete account', 'error');
+        });
+    }
+
+    // Logout device
+    function logoutDevice(deviceId) {
+        if (!confirm('Are you sure you want to logout this device?')) return;
+        
+        fetch(`/profile/devices/${deviceId}/logout`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`device-${deviceId}`)?.remove();
+                showToast('Device logged out successfully', 'success');
+            } else {
+                showToast(data.error || 'Failed to logout device', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Logout device error:', error);
+            showToast('Failed to logout device', 'error');
+        });
+    }
+
+    // Unblock user
+    function unblockUser(userId) {
+        if (!confirm('Are you sure you want to unblock this user?')) return;
+        
+        fetch(`/unblock_user/${userId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`blocked-${userId}`)?.remove();
+                showToast('User unblocked successfully', 'success');
+            } else {
+                showToast(data.error || 'Failed to unblock user', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Unblock error:', error);
+            showToast('Failed to unblock user', 'error');
+        });
+    }
+
+    // Show modals
+    function showPasswordChangeModal() {
+        document.getElementById('password-modal').style.display = 'flex';
+    }
+
+    function showDeleteAccountModal() {
+        document.getElementById('delete-account-modal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Password strength checker
+    function checkPasswordStrength() {
+        const password = document.getElementById('new-password').value;
+        const strengthBar = document.querySelector('#password-strength-bar .strength-bar');
+        const strengthText = document.querySelector('#password-strength-bar .strength-text');
+        
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^A-Za-z0-9]/)) strength++;
+        
+        const levels = ['', 'Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const colors = ['', '#FF6B6B', '#FFA07A', '#FFEAA7', '#96CEB4', '#4ECDC4'];
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.style.backgroundColor = colors[strength];
+        strengthText.textContent = levels[strength];
+        strengthText.style.color = colors[strength];
+    }
+
+    // Password match checker
+    function checkPasswordMatch() {
+        const password = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-new-password').value;
+        const indicator = document.getElementById('password-match-indicator');
+        
+        if (!confirmPassword) {
+            indicator.innerHTML = '';
+        } else if (password === confirmPassword) {
+            indicator.innerHTML = '<i class="fas fa-check-circle" style="color: #4ECDC4;"></i> Passwords match';
+        } else {
+            indicator.innerHTML = '<i class="fas fa-times-circle" style="color: #FF6B6B;"></i> Passwords do not match';
+        }
+    }
+
+    // Bio character counter
+    document.getElementById('info-bio')?.addEventListener('input', function() {
+        const count = this.value.length;
+        document.getElementById('bio-count').textContent = count;
+        if (count > 450) {
+            document.getElementById('bio-count').style.color = '#FF6B6B';
+        } else {
+            document.getElementById('bio-count').style.color = '';
+        }
+    });
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type} animate__animated animate__fadeInRight`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('animate__fadeInRight');
+            toast.classList.add('animate__fadeOutRight');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    // Close modals on outside click
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    // Initialize bio counter
+    const bioTextarea = document.getElementById('info-bio');
+    if (bioTextarea) {
+        document.getElementById('bio-count').textContent = bioTextarea.value.length;
+    }
+</script>
+{% endblock %}

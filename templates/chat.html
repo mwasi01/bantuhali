@@ -1,0 +1,883 @@
+<!-- ============================================ -->
+<!-- BANTU HALII - CHAT INTERFACE -->
+<!-- templates/chat.html -->
+<!-- ============================================ -->
+{% extends "base.html" %}
+
+{% block title %}Bantu Halii - Chat{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.2/emojionearea.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Sidebar -->
+    <aside class="chat-sidebar" id="chat-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user">
+                <img src="{{ user.profile_pic or url_for('static', filename='images/default-avatar.png') }}" 
+                     alt="{{ user.username }}" 
+                     class="sidebar-avatar"
+                     onerror="this.src='https://ui-avatars.com/api/?name={{ user.username[0] }}&background=4ECDC4&color=fff&size=40'">
+                <div class="sidebar-user-info">
+                    <h3>{{ user.username }}</h3>
+                    <span class="user-status {{ 'online' if user.is_online else '' }}">
+                        {{ user.get_online_status_display() }}
+                    </span>
+                </div>
+            </div>
+            <div class="sidebar-actions">
+                <button class="btn-icon" title="New Chat" onclick="showNewChatModal()">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon" title="New Group" onclick="showNewGroupModal()">
+                    <i class="fas fa-users"></i>
+                </button>
+                <button class="btn-icon" title="Contacts" onclick="showContactsModal()">
+                    <i class="fas fa-address-book"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="sidebar-search">
+            <div class="input-group">
+                <span class="input-icon">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="chat-search" 
+                       placeholder="Search or start new chat"
+                       oninput="filterChats()">
+            </div>
+        </div>
+
+        <!-- Chat Tabs -->
+        <div class="chat-tabs">
+            <button class="chat-tab active" onclick="switchChatTab('all')">All</button>
+            <button class="chat-tab" onclick="switchChatTab('unread')">Unread</button>
+            <button class="chat-tab" onclick="switchChatTab('groups')">Groups</button>
+        </div>
+
+        <!-- Chat List -->
+        <div class="chat-list" id="chat-list">
+            {% if rooms %}
+                {% for room in rooms %}
+                <div class="chat-item {{ 'active' if room.id == active_room_id else '' }} {{ 'unread' if room.unread_count > 0 else '' }}" 
+                     data-room-id="{{ room.id }}"
+                     data-room-type="{{ room.room_type }}"
+                     data-room-name="{{ room.name }}"
+                     data-unread="{{ room.unread_count }}"
+                     onclick="openChat({{ room.id }}, '{{ room.name }}', '{{ room.room_pic }}', '{{ room.room_type }}')">
+                    <div class="chat-item-avatar">
+                        <img src="{{ room.room_pic or url_for('static', filename='images/default-group.png') }}" 
+                             alt="{{ room.name }}"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ room.name[0] }}&background=4ECDC4&color=fff&size=50'">
+                        {% if room.room_type == 'group' %}
+                        <span class="group-badge"><i class="fas fa-users"></i></span>
+                        {% endif %}
+                    </div>
+                    <div class="chat-item-content">
+                        <div class="chat-item-header">
+                            <h4 class="chat-item-name">{{ room.name }}</h4>
+                            <span class="chat-item-time">
+                                {% if room.last_message %}
+                                {{ room.last_message.created_at }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="chat-item-preview">
+                            <span class="last-message">
+                                {% if room.last_message %}
+                                    {% if room.last_message.sender_id == user.id %}
+                                    You: 
+                                    {% endif %}
+                                    {{ room.last_message.content[:50] if room.last_message.content else '[Media]' }}
+                                {% else %}
+                                No messages yet
+                                {% endif %}
+                            </span>
+                            {% if room.unread_count > 0 %}
+                            <span class="unread-badge">{{ room.unread_count if room.unread_count < 100 else '99+' }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="chat-item-actions">
+                        <button class="btn-icon-small" title="More options" onclick="event.stopPropagation(); showChatMenu({{ room.id }}, '{{ room.name }}')">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="chat-empty">
+                <i class="fas fa-comments"></i>
+                <h3>No Conversations Yet</h3>
+                <p>Start a new chat or join a group to begin connecting with Africa!</p>
+                <button class="btn btn-primary" onclick="showNewChatModal()">
+                    <i class="fas fa-plus"></i> Start New Chat
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-main" id="chat-main">
+        {% if active_room_id and room %}
+        <!-- Active Chat -->
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <button class="btn-icon mobile-only" onclick="toggleSidebar()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <img src="{{ room.room_pic or url_for('static', filename='images/default-group.png') }}" 
+                     alt="{{ room.name }}"
+                     class="chat-header-avatar"
+                     onerror="this.src='https://ui-avatars.com/api/?name={{ room.name[0] }}&background=4ECDC4&color=fff&size=40'">
+                <div class="chat-header-info">
+                    <h3>{{ room.name }}</h3>
+                    <span class="chat-header-status">
+                        {% if room.room_type == 'direct' %}
+                            {{ 'Online' if room.members[0].is_online else 'Offline' }}
+                        {% else %}
+                            {{ room.member_count }} members, {{ room.online_count }} online
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="chat-header-right">
+                <button class="btn-icon" title="Voice Call" onclick="startCall('voice', {{ room.id }})">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="btn-icon" title="Video Call" onclick="startCall('video', {{ room.id }})">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="btn-icon" title="Search Messages" onclick="toggleSearchMessages()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn-icon" title="Room Info" onclick="showRoomInfo({{ room.id }})">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Message Search -->
+        <div class="message-search" id="message-search" style="display: none;">
+            <div class="input-group">
+                <span class="input-icon">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="message-search-input" 
+                       placeholder="Search messages..."
+                       oninput="searchMessages()">
+                <button class="btn-icon" onclick="toggleSearchMessages()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-navigation">
+                <span id="search-count"></span>
+                <button class="btn-icon-small" onclick="navigateSearch('up')">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+                <button class="btn-icon-small" onclick="navigateSearch('down')">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messages-container">
+            <div class="messages-loading" id="messages-loading" style="display: none;">
+                <div class="spinner"></div>
+                <span>Loading messages...</span>
+            </div>
+            <div class="messages-list" id="messages-list">
+                <!-- Messages will be loaded here -->
+            </div>
+            <div class="scroll-bottom-btn" id="scroll-bottom-btn" onclick="scrollToBottom()">
+                <i class="fas fa-chevron-down"></i>
+                <span class="unread-count-badge" id="unread-count-badge" style="display: none;"></span>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator" style="display: none;">
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="typing-text"></span>
+        </div>
+
+        <!-- Reply Preview -->
+        <div class="reply-preview" id="reply-preview" style="display: none;">
+            <div class="reply-content">
+                <div class="reply-header">
+                    <i class="fas fa-reply"></i>
+                    <span id="reply-username"></span>
+                </div>
+                <div class="reply-message" id="reply-message"></div>
+            </div>
+            <button class="btn-icon-small" onclick="cancelReply()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Message Input -->
+        <div class="message-input-container">
+            <div class="message-input-wrapper">
+                <button class="btn-icon" title="Emoji" onclick="toggleEmojiPicker()">
+                    <i class="fas fa-smile"></i>
+                </button>
+                <button class="btn-icon" title="Attach File" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="file" 
+                       id="file-input" 
+                       multiple 
+                       accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                       style="display: none;"
+                       onchange="handleFileSelect(event)">
+                <div class="message-input" 
+                     id="message-input" 
+                     contenteditable="true" 
+                     placeholder="Type a message..."
+                     onkeydown="handleMessageKeydown(event)"
+                     oninput="handleMessageInput()"></div>
+                <button class="btn-icon" title="Record Voice" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="btn-send" id="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- No Chat Selected -->
+        <div class="no-chat-selected">
+            <div class="no-chat-content">
+                <svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="75" cy="75" r="70" stroke="#4ECDC4" stroke-width="2" stroke-dasharray="10 5"/>
+                    <path d="M50 85 L75 60 L100 85 L75 110 Z" fill="#4ECDC4" opacity="0.3"/>
+                    <circle cx="75" cy="55" r="10" fill="#FF6B6B" opacity="0.5"/>
+                </svg>
+                <h2>Welcome to Bantu Halii!</h2>
+                <p>Select a conversation or start a new chat to begin messaging.</p>
+                <div class="no-chat-actions">
+                    <button class="btn btn-primary" onclick="showNewChatModal()">
+                        <i class="fas fa-plus"></i> New Chat
+                    </button>
+                    <button class="btn btn-outline" onclick="showNewGroupModal()">
+                        <i class="fas fa-users"></i> New Group
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Room Info Sidebar -->
+    <aside class="info-sidebar" id="info-sidebar" style="display: none;">
+        <div class="info-header">
+            <button class="btn-icon" onclick="hideRoomInfo()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3>Room Info</h3>
+        </div>
+        <div class="info-content" id="info-content">
+            <!-- Room info will be loaded here -->
+        </div>
+    </aside>
+</div>
+
+<!-- Modals -->
+<!-- New Chat Modal -->
+<div class="modal" id="new-chat-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>New Chat</h3>
+            <button class="btn-icon" onclick="closeModal('new-chat-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="input-group">
+                <span class="input-icon">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="new-chat-search" 
+                       placeholder="Search users by name, phone, or email"
+                       oninput="searchUsersForChat()">
+            </div>
+            <div class="user-list" id="user-search-results">
+                <div class="search-placeholder">
+                    <i class="fas fa-search"></i>
+                    <p>Search for users to start a conversation</p>
+                </div>
+            </div>
+            <div class="selected-users" id="selected-users" style="display: none;">
+                <h4>Selected Users</h4>
+                <div class="selected-users-list"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('new-chat-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createDirectChat()">Start Chat</button>
+        </div>
+    </div>
+</div>
+
+<!-- New Group Modal -->
+<div class="modal" id="new-group-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>New Group</h3>
+            <button class="btn-icon" onclick="closeModal('new-group-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Group Name</label>
+                <input type="text" class="form-control" id="group-name" placeholder="Enter group name" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Group Photo</label>
+                <div class="group-photo-upload">
+                    <input type="file" id="group-photo" accept="image/*" onchange="previewGroupPhoto(event)">
+                    <div class="photo-preview" id="group-photo-preview">
+                        <i class="fas fa-camera"></i>
+                        <span>Add Photo</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description (optional)</label>
+                <textarea class="form-control" id="group-description" placeholder="Add group description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Group Type</label>
+                <select class="form-control" id="group-type">
+                    <option value="group">Group Chat</option>
+                    <option value="broadcast">Broadcast List</option>
+                    <option value="community">Community</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Add Members</label>
+                <div class="input-group">
+                    <span class="input-icon">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           id="group-member-search" 
+                           placeholder="Search users to add"
+                           oninput="searchUsersForGroup()">
+                </div>
+                <div class="user-list" id="group-user-results">
+                    <div class="search-placeholder">
+                        <i class="fas fa-user-plus"></i>
+                        <p>Search for users to add to the group</p>
+                    </div>
+                </div>
+                <div class="selected-members" id="selected-members" style="display: none;">
+                    <h4>Added Members (<span id="member-count">0</span>)</h4>
+                    <div class="selected-members-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('new-group-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createGroup()">Create Group</button>
+        </div>
+    </div>
+</div>
+
+<!-- Contacts Modal -->
+<div class="modal" id="contacts-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Contacts</h3>
+            <button class="btn-icon" onclick="closeModal('contacts-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="input-group">
+                <span class="input-icon">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="contacts-search" 
+                       placeholder="Search contacts"
+                       oninput="filterContacts()">
+            </div>
+            <div class="contacts-list" id="contacts-list">
+                {% if contacts %}
+                    {% for contact in contacts %}
+                    <div class="contact-item" data-contact-name="{{ contact.username }}">
+                        <img src="{{ contact.profile_pic }}" 
+                             alt="{{ contact.username }}"
+                             class="contact-avatar"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ contact.username[0] }}&background=4ECDC4&color=fff&size=40'">
+                        <div class="contact-info">
+                            <h4>{{ contact.contact_name or contact.username }}</h4>
+                            <span class="contact-status {{ 'online' if contact.is_online else '' }}">
+                                {{ 'Online' if contact.is_online else 'Last seen ' + contact.last_seen }}
+                            </span>
+                        </div>
+                        <div class="contact-actions">
+                            <button class="btn-icon-small" onclick="startDirectChat({{ contact.id }})" title="Message">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="btn-icon-small" onclick="startCall('voice', null, {{ contact.id }})" title="Call">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            <button class="btn-icon-small contact-menu-btn" onclick="showContactMenu({{ contact.id }})" title="More">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="contacts-empty">
+                    <i class="fas fa-address-book"></i>
+                    <p>No contacts yet</p>
+                    <button class="btn btn-primary" onclick="showNewChatModal()">Add Contacts</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Media Preview Modal -->
+<div class="modal" id="media-preview-modal">
+    <div class="modal-content media-preview-content">
+        <div class="modal-header">
+            <h3>Media Preview</h3>
+            <button class="btn-icon" onclick="closeModal('media-preview-modal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="media-preview" id="media-preview">
+                <!-- Media will be displayed here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('media-preview-modal')">Close</button>
+            <button class="btn btn-primary" onclick="downloadMedia()">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="context-menu" style="display: none;">
+    <div class="context-menu-item" onclick="replyToMessage()">
+        <i class="fas fa-reply"></i> Reply
+    </div>
+    <div class="context-menu-item" onclick="forwardMessage()">
+        <i class="fas fa-share"></i> Forward
+    </div>
+    <div class="context-menu-item" onclick="copyMessage()">
+        <i class="fas fa-copy"></i> Copy
+    </div>
+    <div class="context-menu-item" onclick="pinMessage()">
+        <i class="fas fa-thumbtack"></i> Pin
+    </div>
+    <div class="context-menu-item" onclick="starMessage()">
+        <i class="fas fa-star"></i> Star
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="deleteMessage()">
+        <i class="fas fa-trash"></i> Delete
+    </div>
+</div>
+
+<!-- Emoji Picker -->
+<div class="emoji-picker" id="emoji-picker" style="display: none;">
+    <div class="emoji-categories">
+        <button class="emoji-category active" data-category="recent"><i class="fas fa-clock"></i></button>
+        <button class="emoji-category" data-category="smileys"><i class="fas fa-smile"></i></button>
+        <button class="emoji-category" data-category="people"><i class="fas fa-users"></i></button>
+        <button class="emoji-category" data-category="animals"><i class="fas fa-paw"></i></button>
+        <button class="emoji-category" data-category="food"><i class="fas fa-utensils"></i></button>
+        <button class="emoji-category" data-category="travel"><i class="fas fa-plane"></i></button>
+        <button class="emoji-category" data-category="activities"><i class="fas fa-futbol"></i></button>
+        <button class="emoji-category" data-category="objects"><i class="fas fa-lightbulb"></i></button>
+        <button class="emoji-category" data-category="symbols"><i class="fas fa-heart"></i></button>
+        <button class="emoji-category" data-category="flags"><i class="fas fa-flag"></i></button>
+    </div>
+    <div class="emoji-list" id="emoji-list">
+        <!-- Emojis will be loaded here -->
+    </div>
+</div>
+
+<!-- Recording Indicator -->
+<div class="recording-indicator" id="recording-indicator" style="display: none;">
+    <div class="recording-content">
+        <div class="recording-dot"></div>
+        <span>Recording... <span id="recording-time">00:00</span></span>
+        <button class="btn-icon" onclick="cancelRecording()">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="btn-send" onclick="sendRecording()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.2/emojionearea.min.js"></script>
+
+<script>
+    // Current chat state
+    let currentRoomId = {{ active_room_id|default('null') }};
+    let currentRoomName = '';
+    let currentRoomPic = '';
+    let currentRoomType = '';
+    let currentPage = 1;
+    let hasMoreMessages = true;
+    let isLoadingMessages = false;
+    let replyingTo = null;
+    let contextMessageId = null;
+    let searchResults = [];
+    let currentSearchIndex = -1;
+    let isRecording = false;
+    let mediaRecorder = null;
+    let recordingTimer = null;
+    let selectedUsers = new Set();
+    let selectedGroupMembers = new Set();
+    let typingTimeout = null;
+
+    // Initialize chat
+    function initChat() {
+        if (currentRoomId) {
+            openChat(currentRoomId, currentRoomName, currentRoomPic, currentRoomType);
+        }
+        
+        // Socket event listeners
+        if (socket) {
+            socket.on('new_message', handleNewMessage);
+            socket.on('message_edited', handleMessageEdited);
+            socket.on('message_deleted', handleMessageDeleted);
+            socket.on('user_typing', handleUserTyping);
+            socket.on('user_stopped_typing', handleUserStoppedTyping);
+            socket.on('message_reaction', handleMessageReaction);
+            socket.on('message_pinned', handleMessagePinned);
+            socket.on('user_joined_room', handleUserJoinedRoom);
+            socket.on('user_left_room', handleUserLeftRoom);
+            socket.on('messages_read', handleMessagesRead);
+        }
+        
+        // Load initial data
+        loadChats();
+        updateUnreadCounts();
+    }
+
+    // Open a chat room
+    function openChat(roomId, roomName, roomPic, roomType) {
+        currentRoomId = roomId;
+        currentRoomName = roomName;
+        currentRoomPic = roomPic;
+        currentRoomType = roomType;
+        currentPage = 1;
+        hasMoreMessages = true;
+        
+        // Update UI
+        updateChatHeader(roomName, roomPic, roomType);
+        
+        // Load messages
+        loadMessages();
+        
+        // Join socket room
+        if (socket) {
+            socket.emit('join_room', { room_id: roomId });
+        }
+        
+        // Update active chat in sidebar
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const activeChat = document.querySelector(`[data-room-id="${roomId}"]`);
+        if (activeChat) {
+            activeChat.classList.add('active');
+            activeChat.classList.remove('unread');
+        }
+        
+        // Show chat main on mobile
+        if (window.innerWidth < 768) {
+            document.getElementById('chat-sidebar').style.display = 'none';
+            document.getElementById('chat-main').style.display = 'flex';
+        }
+        
+        // Focus message input
+        setTimeout(() => {
+            document.getElementById('message-input')?.focus();
+        }, 300);
+    }
+
+    // Load messages for current room
+    function loadMessages(page = 1, append = false) {
+        if (!currentRoomId || isLoadingMessages) return;
+        
+        isLoadingMessages = true;
+        const loadingEl = document.getElementById('messages-loading');
+        const messagesList = document.getElementById('messages-list');
+        
+        if (!append) {
+            messagesList.innerHTML = '';
+            loadingEl.style.display = 'flex';
+        }
+        
+        fetch(`/room/${currentRoomId}/messages?page=${page}&per_page=50`)
+            .then(response => response.json())
+            .then(data => {
+                loadingEl.style.display = 'none';
+                
+                if (data.messages && data.messages.length > 0) {
+                    const messagesHtml = data.messages.reverse().map(msg => renderMessage(msg)).join('');
+                    
+                    if (append) {
+                        messagesList.insertAdjacentHTML('afterbegin', messagesHtml);
+                    } else {
+                        messagesList.innerHTML = messagesHtml;
+                        scrollToBottom(false);
+                    }
+                    
+                    hasMoreMessages = data.has_next;
+                    currentPage = page;
+                } else if (!append) {
+                    messagesList.innerHTML = `
+                        <div class="messages-empty">
+                            <i class="fas fa-comments"></i>
+                            <p>No messages yet. Say hello! 👋</p>
+                        </div>
+                    `;
+                }
+                
+                isLoadingMessages = false;
+            })
+            .catch(error => {
+                console.error('Error loading messages:', error);
+                loadingEl.style.display = 'none';
+                isLoadingMessages = false;
+            });
+    }
+
+    // Load more messages on scroll
+    document.getElementById('messages-container')?.addEventListener('scroll', function() {
+        if (this.scrollTop <= 50 && hasMoreMessages && !isLoadingMessages) {
+            loadMessages(currentPage + 1, true);
+        }
+        
+        // Show/hide scroll to bottom button
+        const scrollBtn = document.getElementById('scroll-bottom-btn');
+        if (this.scrollTop < this.scrollHeight - this.clientHeight - 100) {
+            scrollBtn.style.display = 'flex';
+        } else {
+            scrollBtn.style.display = 'none';
+        }
+    });
+
+    // Render a single message
+    function renderMessage(msg) {
+        const isMine = msg.sender_id === {{ user.id }};
+        const messageDate = new Date(msg.created_at);
+        const timeStr = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        let html = `<div class="message ${isMine ? 'message-mine' : 'message-other'}" 
+                         id="msg-${msg.id}" 
+                         data-message-id="${msg.id}">`;
+        
+        // Message date separator
+        if (msg.showDate) {
+            html += `<div class="message-date-separator">
+                        <span>${messageDate.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                    </div>`;
+        }
+        
+        html += `<div class="message-wrapper" oncontextmenu="showContextMenu(event, ${msg.id})">`;
+        
+        // Sender avatar for others
+        if (!isMine) {
+            html += `<img src="${msg.sender_pic}" 
+                          alt="${msg.sender_username}" 
+                          class="message-avatar"
+                          onerror="this.src='https://ui-avatars.com/api/?name=${msg.sender_username[0]}&background=4ECDC4&color=fff&size=32'">`;
+        }
+        
+        html += `<div class="message-content">`;
+        
+        // Sender name for groups
+        if (!isMine && currentRoomType === 'group') {
+            html += `<span class="message-sender">${msg.sender_username}</span>`;
+        }
+        
+        // Reply preview
+        if (msg.reply_to_id) {
+            html += `<div class="message-reply" onclick="scrollToMessage(${msg.reply_to_id})">
+                        <i class="fas fa-reply"></i>
+                        <span>Reply to message</span>
+                    </div>`;
+        }
+        
+        // Message body
+        switch (msg.message_type) {
+            case 'text':
+                html += `<div class="message-text">${escapeHtml(msg.content || '')}</div>`;
+                break;
+            case 'image':
+                html += `<div class="message-media">
+                            <img src="${msg.media_url}" 
+                                 alt="Image" 
+                                 class="message-image" 
+                                 loading="lazy"
+                                 onclick="previewMedia('${msg.media_url}', 'image')">
+                        </div>`;
+                if (msg.content) {
+                    html += `<div class="message-text">${escapeHtml(msg.content)}</div>`;
+                }
+                break;
+            case 'video':
+                html += `<div class="message-media">
+                            <video controls class="message-video" poster="${msg.thumbnail_url || ''}">
+                                <source src="${msg.media_url}" type="video/mp4">
+                                Your browser does not support video playback.
+                            </video>
+                        </div>`;
+                if (msg.content) {
+                    html += `<div class="message-text">${escapeHtml(msg.content)}</div>`;
+                }
+                break;
+            case 'audio':
+                html += `<div class="message-media">
+                            <audio controls class="message-audio">
+                                <source src="${msg.media_url}" type="audio/mpeg">
+                                Your browser does not support audio playback.
+                            </audio>
+                            ${msg.media_duration ? `<span class="audio-duration">${formatDuration(msg.media_duration)}</span>` : ''}
+                        </div>`;
+                break;
+            case 'document':
+                html += `<div class="message-media">
+                            <a href="${msg.media_url}" target="_blank" class="message-document">
+                                <i class="fas fa-file"></i>
+                                <span>Document</span>
+                                ${msg.media_size ? `<span class="doc-size">${formatFileSize(msg.media_size)}</span>` : ''}
+                            </a>
+                        </div>`;
+                if (msg.content) {
+                    html += `<div class="message-text">${escapeHtml(msg.content)}</div>`;
+                }
+                break;
+            default:
+                html += `<div class="message-text">${escapeHtml(msg.content || '')}</div>`;
+        }
+        
+        // Message metadata
+        html += `<div class="message-meta">
+                    <span class="message-time">${timeStr}</span>
+                    ${msg.is_edited ? '<span class="message-edited">edited</span>' : ''}
+                    ${isMine ? `
+                        <span class="message-status">
+                            ${msg.is_read ? '<i class="fas fa-check-double read"></i>' : 
+                              msg.is_delivered ? '<i class="fas fa-check"></i>' : 
+                              '<i class="fas fa-clock"></i>'}
+                        </span>
+                    ` : ''}
+                </div>`;
+        
+        // Reactions
+        if (msg.reactions && msg.reactions.length > 0) {
+            html += `<div class="message-reactions">`;
+            msg.reactions.forEach(reaction => {
+                html += `<span class="reaction" onclick="toggleReaction(${msg.id}, '${reaction.emoji}')" 
+                               title="${reaction.user_id === {{ user.id }} ? 'You' : 'User'}">
+                            ${reaction.emoji}
+                        </span>`;
+            });
+            html += `<button class="add-reaction" onclick="showReactionPicker(${msg.id})">+</button>`;
+            html += `</div>`;
+        }
+        
+        html += `</div></div></div>`;
+        
+        return html;
+    }
+
+    // Send a message
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const content = input.innerText.trim();
+        
+        if (!content && !pendingFiles.length) return;
+        if (!currentRoomId) return;
+        
+        const messageData = {
+            room_id: currentRoomId,
+            content: content
+        };
+        
+        // Add reply info
+        if (replyingTo) {
+            messageData.reply_to_id = replyingTo;
+        }
+        
+        // Send via socket
+        if (socket) {
+            socket.emit('send_message', messageData);
+        }
+        
+        // Clear input
+        input.innerHTML = '';
+        cancelReply();
+        
+        // Stop typing indicator
+        if (socket) {
+            socket.emit('stop_typing', { room_id: currentRoomId });
+        }
+    }
+
+    // Handle incoming new message
+    function handleNewMessage(data) {
+        if (data.room_id === currentRoomId) {
+            const messagesList = document.getElementById('messages-list');
+            const isScrolledToBottom = isNearBottom();
+            
+            messagesList.insertAdjacentHTML('beforeend', renderMessage(data));
+            
+            if (isScrolledToBottom || data.sender_id === {{ user.id }}) {
+                scrollToBottom(true);
+            }
+        }
+        
+        // Update chat list
+        updateChatListItem(data.room_id, data);
+        playMessageSound();
+    }
+
+    // ... (more JavaScript functions for chat functionality)
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initChat();
+    });
+</script>
+{% endblock %}

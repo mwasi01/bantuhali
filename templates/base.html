@@ -1,0 +1,575 @@
+<!-- ============================================ -->
+<!-- BANTU HALII - BASE TEMPLATE -->
+<!-- templates/base.html -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Bantu Halii - Connecting Africa through secure messaging">
+    <meta name="keywords" content="Bantu Halii, African chat, messaging app, Bantu Africa">
+    <meta name="author" content="Bantu Africa">
+    <meta name="theme-color" content="#4ECDC4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bantu Halii">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+    
+    <title>{% block title %}Bantu Halii - Connecting Africa{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bantu-body">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="38" stroke="#4ECDC4" stroke-width="4" fill="none"/>
+                    <path d="M25 50 L40 30 L55 50 L40 70 Z" fill="#4ECDC4" opacity="0.8"/>
+                    <circle cx="40" cy="25" r="8" fill="#FF6B6B"/>
+                </svg>
+            </div>
+            <div class="loading-text">Bantu Halii</div>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="{{ url_for('index') }}" class="nav-brand">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="15" stroke="#4ECDC4" stroke-width="2" fill="none"/>
+                        <path d="M10 20 L16 12 L22 20 L16 28 Z" fill="#4ECDC4" opacity="0.8"/>
+                        <circle cx="16" cy="10" r="3" fill="#FF6B6B"/>
+                    </svg>
+                    <span class="brand-text">Bantu Halii</span>
+                </a>
+            </div>
+            
+            <div class="nav-center">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="global-search" placeholder="Search users, messages...">
+                    <div class="search-results" id="search-results" style="display: none;">
+                        <div class="search-results-content"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                {% if current_user %}
+                <div class="nav-actions">
+                    <button class="nav-btn" id="notifications-btn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notification-badge" style="display: none;">0</span>
+                    </button>
+                    <button class="nav-btn" id="theme-toggle" title="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-menu">
+                        <button class="nav-btn user-menu-btn" id="user-menu-btn">
+                            <img src="{{ current_user.profile_pic or url_for('static', filename='images/default-avatar.png') }}" 
+                                 alt="{{ current_user.username }}" 
+                                 class="user-avatar-small"
+                                 onerror="this.src='https://ui-avatars.com/api/?name={{ current_user.username[0] }}&background=4ECDC4&color=fff&size=32'">
+                            <span class="user-name">{{ current_user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="user-dropdown">
+                            <a href="{{ url_for('profile') }}" class="dropdown-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="{{ url_for('chat') }}" class="dropdown-item">
+                                <i class="fas fa-comments"></i> Chats
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ url_for('profile') }}#settings" class="dropdown-item">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a href="#" class="dropdown-item" onclick="confirmLogout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="nav-auth">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notifications-panel" style="display: none;">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notifications-actions">
+                <button class="btn-text" onclick="markAllNotificationsRead()">Mark all as read</button>
+                <button class="btn-icon" onclick="toggleNotifications()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <div class="notifications-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }} animate__animated animate__fadeInDown">
+                    <div class="flash-content">
+                        {% if category == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                        {% elif category == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                        {% elif category == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {% elif category == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                    <button class="flash-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="brand-text">Bantu Halii</span>
+                <span class="brand-tagline">Connecting Africa</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">About</a>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-copy">
+                &copy; {{ current_year }} Bantu Africa. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chat Widget (minimized by default) -->
+    {% if current_user %}
+    <div class="chat-widget" id="chat-widget" style="display: none;">
+        <div class="chat-widget-header">
+            <span>Quick Chat</span>
+            <button onclick="toggleChatWidget()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-widget-body" id="chat-widget-body">
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts -->
+    <script>
+        // Global variables
+        const APP_NAME = 'Bantu Halii';
+        const SOCKET_URL = window.location.origin;
+        let socket = null;
+        let currentUser = {{ current_user.to_dict() | tojson if current_user else 'null' }};
+        
+        // Initialize Socket.IO if user is logged in
+        if (currentUser) {
+            socket = io(SOCKET_URL, {
+                transports: ['websocket', 'polling'],
+                upgrade: true,
+                rememberUpgrade: true,
+                query: {
+                    device_id: getDeviceId(),
+                    device_name: getDeviceName(),
+                    device_type: getDeviceType(),
+                    platform: 'web'
+                }
+            });
+            
+            socket.on('connect', function() {
+                console.log('✅ Connected to Bantu Halii');
+                document.getElementById('loading-screen').style.display = 'none';
+            });
+            
+            socket.on('disconnect', function() {
+                console.log('❌ Disconnected from Bantu Halii');
+            });
+            
+            socket.on('connect_error', function(error) {
+                console.error('Connection error:', error);
+            });
+            
+            // Load notifications on connect
+            socket.on('connected', function(data) {
+                loadUnreadNotifications();
+                updateOnlineStatus(true);
+            });
+        }
+        
+        // Hide loading screen after page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 300);
+            }, 500);
+        });
+        
+        // Helper functions
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('bantu_device_id');
+            if (!deviceId) {
+                deviceId = 'web_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('bantu_device_id', deviceId);
+            }
+            return deviceId;
+        }
+        
+        function getDeviceName() {
+            return navigator.platform || 'Unknown Device';
+        }
+        
+        function getDeviceType() {
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                return 'mobile';
+            } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
+                return 'tablet';
+            }
+            return 'desktop';
+        }
+        
+        function updateOnlineStatus(isOnline) {
+            if (socket && currentUser) {
+                socket.emit('user_status_change', {
+                    status: isOnline ? 'online' : 'offline'
+                });
+            }
+        }
+        
+        function loadUnreadNotifications() {
+            fetch('/notifications/unread_count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-badge');
+                    if (data.count > 0) {
+                        badge.style.display = 'flex';
+                        badge.textContent = data.count > 99 ? '99+' : data.count;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error loading notifications:', error));
+        }
+        
+        function toggleNotifications() {
+            const panel = document.getElementById('notifications-panel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                loadNotifications();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        function loadNotifications() {
+            fetch('/notifications?per_page=20')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('notifications-list');
+                    if (data.notifications.length === 0) {
+                        list.innerHTML = `
+                            <div class="notifications-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No notifications yet</p>
+                            </div>
+                        `;
+                    } else {
+                        list.innerHTML = data.notifications.map(notification => `
+                            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                                 onclick="handleNotificationClick(${notification.id}, '${notification.data}')">
+                                <div class="notification-icon">
+                                    <i class="fas fa-${getNotificationIcon(notification.type)}"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">${notification.title}</div>
+                                    <div class="notification-body">${notification.body}</div>
+                                    <div class="notification-time">${formatTime(notification.created_at)}</div>
+                                </div>
+                                ${!notification.is_read ? '<div class="notification-dot"></div>' : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(error => console.error('Error loading notifications:', error));
+        }
+        
+        function getNotificationIcon(type) {
+            const icons = {
+                'new_message': 'comment',
+                'group_invite': 'users',
+                'member_joined': 'user-plus',
+                'promoted_to_admin': 'user-shield',
+                'added_to_group': 'user-plus',
+                'removed_from_group': 'user-minus',
+                'muted_in_room': 'volume-mute',
+                'unmuted_in_room': 'volume-up',
+                'contact_update': 'user-edit',
+                'system': 'info-circle'
+            };
+            return icons[type] || 'bell';
+        }
+        
+        function handleNotificationClick(notificationId, data) {
+            // Mark as read
+            fetch(`/notifications/${notificationId}/read`, { method: 'POST' })
+                .then(() => loadUnreadNotifications());
+            
+            // Navigate based on notification type
+            try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.room_id) {
+                    window.location.href = `/chat/${parsedData.room_id}`;
+                }
+            } catch (e) {
+                console.error('Error parsing notification data:', e);
+            }
+        }
+        
+        function markAllNotificationsRead() {
+            fetch('/notifications/read_all', { method: 'POST' })
+                .then(response => response.json())
+                .then(() => {
+                    loadNotifications();
+                    loadUnreadNotifications();
+                })
+                .catch(error => console.error('Error marking all as read:', error));
+        }
+        
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+            return date.toLocaleDateString();
+        }
+        
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout from Bantu Halii?')) {
+                window.location.href = '/logout';
+            }
+        }
+        
+        function toggleChatWidget() {
+            const widget = document.getElementById('chat-widget');
+            widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Theme toggle
+        document.getElementById('theme-toggle')?.addEventListener('click', function() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bantu_theme', newTheme);
+            
+            const icon = this.querySelector('i');
+            icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        });
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('bantu_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeIcon = document.querySelector('#theme-toggle i');
+        if (themeIcon) {
+            themeIcon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+        
+        // Mobile navigation toggle
+        document.getElementById('nav-toggle')?.addEventListener('click', function() {
+            document.body.classList.toggle('nav-open');
+        });
+        
+        // User dropdown toggle
+        document.getElementById('user-menu-btn')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('user-dropdown').classList.toggle('show');
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function() {
+            document.getElementById('user-dropdown')?.classList.remove('show');
+            document.getElementById('search-results')?.style.display = 'none';
+        });
+        
+        // Notifications button
+        document.getElementById('notifications-btn')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleNotifications();
+        });
+        
+        // Global search functionality
+        const searchInput = document.getElementById('global-search');
+        const searchResults = document.getElementById('search-results');
+        let searchTimeout;
+        
+        searchInput?.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                fetch(`/search?q=${encodeURIComponent(query)}&type=all`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.users.length > 0 || data.rooms.length > 0 || data.messages.length > 0) {
+                            let html = '';
+                            
+                            if (data.users.length > 0) {
+                                html += '<div class="search-category">Users</div>';
+                                data.users.forEach(user => {
+                                    html += `
+                                        <div class="search-item" onclick="window.location.href='/chat?user_id=${user.id}'">
+                                            <img src="${user.profile_pic}" alt="${user.username}" class="search-avatar"
+                                                 onerror="this.src='https://ui-avatars.com/api/?name=${user.username[0]}&background=4ECDC4&color=fff&size=32'">
+                                            <div class="search-info">
+                                                <div class="search-name">${user.username}</div>
+                                                <div class="search-status">${user.status}</div>
+                                            </div>
+                                            <span class="status-dot ${user.is_online ? 'online' : 'offline'}"></span>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            
+                            if (data.rooms.length > 0) {
+                                html += '<div class="search-category">Rooms</div>';
+                                data.rooms.forEach(room => {
+                                    html += `
+                                        <div class="search-item" onclick="window.location.href='/chat/${room.id}'">
+                                            <div class="search-icon">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <div class="search-info">
+                                                <div class="search-name">${room.name}</div>
+                                                <div class="search-status">${room.member_count} members</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            
+                            if (data.messages.length > 0) {
+                                html += '<div class="search-category">Messages</div>';
+                                data.messages.forEach(message => {
+                                    html += `
+                                        <div class="search-item" onclick="window.location.href='/chat/${message.room_id}'">
+                                            <div class="search-icon">
+                                                <i class="fas fa-comment"></i>
+                                            </div>
+                                            <div class="search-info">
+                                                <div class="search-name">${message.sender_username}</div>
+                                                <div class="search-status">${message.content?.substring(0, 50)}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            
+                            searchResults.querySelector('.search-results-content').innerHTML = html;
+                            searchResults.style.display = 'block';
+                        } else {
+                            searchResults.querySelector('.search-results-content').innerHTML = `
+                                <div class="search-empty">
+                                    <i class="fas fa-search"></i>
+                                    <p>No results found for "${query}"</p>
+                                </div>
+                            `;
+                            searchResults.style.display = 'block';
+                        }
+                    })
+                    .catch(error => console.error('Search error:', error));
+            }, 300);
+        });
+        
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                updateOnlineStatus(false);
+            } else {
+                updateOnlineStatus(true);
+                loadUnreadNotifications();
+            }
+        });
+        
+        // Handle before unload
+        window.addEventListener('beforeunload', function() {
+            updateOnlineStatus(false);
+        });
+        
+        // Auto-hide flash messages
+        document.querySelectorAll('.flash-message').forEach(function(flash) {
+            setTimeout(function() {
+                flash.style.opacity = '0';
+                setTimeout(function() {
+                    flash.remove();
+                }, 300);
+            }, 5000);
+        });
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

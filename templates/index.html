@@ -1,0 +1,507 @@
+<!-- ============================================ -->
+<!-- BANTU HALII - LOGIN/REGISTRATION PAGE -->
+<!-- templates/index.html -->
+<!-- ============================================ -->
+{% extends "base.html" %}
+
+{% block title %}Bantu Halii - Login or Register{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <!-- Left Side - Hero Section -->
+        <div class="auth-hero">
+            <div class="hero-content">
+                <div class="hero-logo">
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="60" r="55" stroke="#4ECDC4" stroke-width="3" fill="none"/>
+                        <path d="M38 72 L60 45 L82 72 L60 99 Z" fill="#4ECDC4" opacity="0.8"/>
+                        <circle cx="60" cy="38" r="12" fill="#FF6B6B"/>
+                        <circle cx="45" cy="30" r="4" fill="#FFEAA7"/>
+                        <circle cx="75" cy="30" r="4" fill="#FFEAA7"/>
+                        <circle cx="35" cy="75" r="3" fill="#45B7D1"/>
+                        <circle cx="85" cy="75" r="3" fill="#45B7D1"/>
+                    </svg>
+                </div>
+                <h1 class="hero-title">Bantu Halii</h1>
+                <p class="hero-subtitle">Connecting Africa, One Message at a Time</p>
+                <div class="hero-features">
+                    <div class="hero-feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Secure & Encrypted</span>
+                    </div>
+                    <div class="hero-feature">
+                        <i class="fas fa-globe-africa"></i>
+                        <span>Made for Africa</span>
+                    </div>
+                    <div class="hero-feature">
+                        <i class="fas fa-bolt"></i>
+                        <span>Lightning Fast</span>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">10M+</span>
+                        <span class="stat-label">Users Across Africa</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">54</span>
+                        <span class="stat-label">African Countries</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">1B+</span>
+                        <span class="stat-label">Messages Daily</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Auth Forms -->
+        <div class="auth-forms">
+            <div class="auth-tabs">
+                <button class="auth-tab {{ 'active' if active_form == 'login' else '' }}" 
+                        onclick="switchAuthForm('login')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="auth-tab {{ 'active' if active_form == 'register' else '' }}" 
+                        onclick="switchAuthForm('register')">
+                    <i class="fas fa-user-plus"></i> Register
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="auth-form" id="login-form" style="{{ 'display: none;' if active_form == 'register' else '' }}">
+                <div class="form-header">
+                    <h2>Welcome Back!</h2>
+                    <p>Login to continue connecting with Africa</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('login') }}" id="loginForm" class="needs-validation">
+                    <div class="form-group">
+                        <label for="login_id">
+                            <i class="fas fa-user"></i> Username, Email, or Phone
+                        </label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-id-card"></i>
+                            </span>
+                            <input type="text" 
+                                   id="login_id" 
+                                   name="login_id" 
+                                   class="form-control" 
+                                   placeholder="Enter your username, email, or phone"
+                                   required
+                                   autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login_password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <input type="password" 
+                                   id="login_password" 
+                                   name="password" 
+                                   class="form-control" 
+                                   placeholder="Enter your password"
+                                   required
+                                   autocomplete="current-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('login_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember_me">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Login to Bantu Halii
+                    </button>
+
+                    <div class="form-divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <div class="social-login">
+                        <button type="button" class="btn btn-social">
+                            <i class="fab fa-google"></i> Google
+                        </button>
+                        <button type="button" class="btn btn-social">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </button>
+                        <button type="button" class="btn btn-social">
+                            <i class="fas fa-phone"></i> Phone
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form" id="register-form" style="{{ 'display: none;' if active_form == 'login' else '' }}">
+                <div class="form-header">
+                    <h2>Join Bantu Halii</h2>
+                    <p>Connect with friends and family across Africa</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('register') }}" id="registerForm" class="needs-validation" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg_username">
+                                <i class="fas fa-user"></i> Username *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-icon">
+                                    <i class="fas fa-at"></i>
+                                </span>
+                                <input type="text" 
+                                       id="reg_username" 
+                                       name="username" 
+                                       class="form-control" 
+                                       placeholder="Choose a username"
+                                       required
+                                       minlength="3"
+                                       maxlength="50"
+                                       pattern="[a-zA-Z0-9_]+"
+                                       autocomplete="username">
+                                <div class="input-feedback" id="username-feedback"></div>
+                            </div>
+                            <small class="form-text">Only letters, numbers, and underscores</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg_phone">
+                            <i class="fas fa-phone"></i> Phone Number
+                        </label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </span>
+                            <select class="country-code" id="country-code" name="country_code">
+                                <option value="+254">🇰🇪 +254</option>
+                                <option value="+255">🇹🇿 +255</option>
+                                <option value="+256">🇺🇬 +256</option>
+                                <option value="+250">🇷🇼 +250</option>
+                                <option value="+257">🇧🇮 +257</option>
+                                <option value="+251">🇪🇹 +251</option>
+                                <option value="+252">🇸🇴 +252</option>
+                                <option value="+249">🇸🇸 +249</option>
+                                <option value="+260">🇿🇲 +260</option>
+                                <option value="+263">🇿🇼 +263</option>
+                                <option value="+27">🇿🇦 +27</option>
+                                <option value="+234">🇳🇬 +234</option>
+                                <option value="+233">🇬🇭 +233</option>
+                                <option value="+20">🇪🇬 +20</option>
+                                <option value="+212">🇲🇦 +212</option>
+                                <option value="+216">🇹🇳 +216</option>
+                                <option value="+213">🇩🇿 +213</option>
+                                <option value="+218">🇱🇾 +218</option>
+                                <option value="+221">🇸🇳 +221</option>
+                                <option value="+223">🇲🇱 +223</option>
+                                <option value="+225">🇨🇮 +225</option>
+                                <option value="+237">🇨🇲 +237</option>
+                                <option value="+241">🇬🇦 +241</option>
+                                <option value="+242">🇨🇬 +242</option>
+                                <option value="+243">🇨🇩 +243</option>
+                                <option value="+244">🇦🇴 +244</option>
+                                <option value="+264">🇳🇦 +264</option>
+                                <option value="+267">🇧🇼 +267</option>
+                                <option value="+268">🇸🇿 +268</option>
+                                <option value="+266">🇱🇸 +266</option>
+                                <option value="+265">🇲🇼 +265</option>
+                                <option value="+258">🇲🇿 +258</option>
+                                <option value="+261">🇲🇬 +261</option>
+                                <option value="+230">🇲🇺 +230</option>
+                                <option value="+248">🇸🇨 +248</option>
+                                <option value="+253">🇩🇯 +253</option>
+                                <option value="+291">🇪🇷 +291</option>
+                                <option value="+224">🇬🇳 +224</option>
+                                <option value="+245">🇬🇼 +245</option>
+                                <option value="+232">🇸🇱 +232</option>
+                                <option value="+231">🇱🇷 +231</option>
+                                <option value="+228">🇹🇬 +228</option>
+                                <option value="+229">🇧🇯 +229</option>
+                                <option value="+227">🇳🇪 +227</option>
+                                <option value="+226">🇧🇫 +226</option>
+                                <option value="+222">🇲🇷 +222</option>
+                                <option value="+235">🇹🇩 +235</option>
+                                <option value="+236">🇨🇫 +236</option>
+                                <option value="+240">🇬🇶 +240</option>
+                                <option value="+239">🇸🇹 +239</option>
+                                <option value="+238">🇨🇻 +238</option>
+                                <option value="+269">🇰🇲 +269</option>
+                                <option value="+262">🇷🇪 +262</option>
+                                <option value="+220">🇬🇲 +220</option>
+                                <option value="+246">🇮🇴 +246</option>
+                                <option value="+247">🇦🇨 +247</option>
+                                <option value="+290">🇸🇭 +290</option>
+                                <option value="+211">🇸🇸 +211</option>
+                            </select>
+                            <input type="tel" 
+                                   id="reg_phone" 
+                                   name="phone_number" 
+                                   class="form-control" 
+                                   placeholder="Phone number"
+                                   autocomplete="tel">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg_email">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-at"></i>
+                            </span>
+                            <input type="email" 
+                                   id="reg_email" 
+                                   name="email" 
+                                   class="form-control" 
+                                   placeholder="your.email@example.com"
+                                   autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg_password">
+                                <i class="fas fa-lock"></i> Password *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-icon">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <input type="password" 
+                                       id="reg_password" 
+                                       name="password" 
+                                       class="form-control" 
+                                       placeholder="Create a strong password"
+                                       required
+                                       minlength="8"
+                                       autocomplete="new-password">
+                                <button type="button" class="password-toggle" onclick="togglePassword('reg_password')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="password-strength">
+                                <div class="strength-bar"></div>
+                                <span class="strength-text"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg_confirm_password">
+                            <i class="fas fa-lock"></i> Confirm Password *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <input type="password" 
+                                   id="reg_confirm_password" 
+                                   name="confirm_password" 
+                                   class="form-control" 
+                                   placeholder="Confirm your password"
+                                   required
+                                   minlength="8"
+                                   autocomplete="new-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('reg_confirm_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-match" id="password-match"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" class="text-link">Terms of Service</a> and <a href="#" class="text-link">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <i class="fas fa-user-plus"></i> Create Bantu Halii Account
+                    </button>
+
+                    <div class="form-divider">
+                        <span>or sign up with</span>
+                    </div>
+
+                    <div class="social-login">
+                        <button type="button" class="btn btn-social">
+                            <i class="fab fa-google"></i> Google
+                        </button>
+                        <button type="button" class="btn btn-social">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </button>
+                        <button type="button" class="btn btn-social">
+                            <i class="fas fa-phone"></i> Phone
+                        </button>
+                    </div>
+
+                    <div class="form-footer">
+                        Already have an account? 
+                        <a href="#" onclick="switchAuthForm('login')" class="text-link">Login here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchAuthForm(form) {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const tabs = document.querySelectorAll('.auth-tab');
+        
+        if (form === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            tabs[1].classList.add('active');
+            tabs[0].classList.remove('active');
+        }
+    }
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            button.className = 'fas fa-eye';
+        }
+    }
+
+    // Password strength checker
+    document.getElementById('reg_password')?.addEventListener('input', function() {
+        const password = this.value;
+        const strengthBar = document.querySelector('.strength-bar');
+        const strengthText = document.querySelector('.strength-text');
+        
+        let strength = 0;
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^A-Za-z0-9]/)) strength++;
+        
+        const strengthLevels = ['', 'Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const colors = ['', '#FF6B6B', '#FFA07A', '#FFEAA7', '#96CEB4', '#4ECDC4'];
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.style.backgroundColor = colors[strength];
+        strengthText.textContent = strengthLevels[strength];
+        strengthText.style.color = colors[strength];
+    });
+
+    // Password match checker
+    document.getElementById('reg_confirm_password')?.addEventListener('input', function() {
+        const password = document.getElementById('reg_password').value;
+        const confirmPassword = this.value;
+        const matchDiv = document.getElementById('password-match');
+        
+        if (confirmPassword === '') {
+            matchDiv.innerHTML = '';
+        } else if (password === confirmPassword) {
+            matchDiv.innerHTML = '<i class="fas fa-check-circle" style="color: #4ECDC4;"></i> Passwords match';
+        } else {
+            matchDiv.innerHTML = '<i class="fas fa-times-circle" style="color: #FF6B6B;"></i> Passwords do not match';
+        }
+    });
+
+    // Username availability checker
+    let usernameTimeout;
+    document.getElementById('reg_username')?.addEventListener('input', function() {
+        clearTimeout(usernameTimeout);
+        const username = this.value.trim();
+        const feedback = document.getElementById('username-feedback');
+        
+        if (username.length < 3) {
+            feedback.innerHTML = '';
+            return;
+        }
+        
+        usernameTimeout = setTimeout(() => {
+            fetch(`/search_users?q=${encodeURIComponent(username)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const exists = data.some(user => user.username.toLowerCase() === username.toLowerCase());
+                    if (exists) {
+                        feedback.innerHTML = '<i class="fas fa-times-circle" style="color: #FF6B6B;"></i> Username taken';
+                    } else {
+                        feedback.innerHTML = '<i class="fas fa-check-circle" style="color: #4ECDC4;"></i> Username available';
+                    }
+                })
+                .catch(() => {
+                    feedback.innerHTML = '';
+                });
+        }, 500);
+    });
+
+    // Form validation
+    document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+        const loginId = document.getElementById('login_id').value.trim();
+        const password = document.getElementById('login_password').value;
+        
+        if (!loginId || !password) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+        }
+    });
+
+    document.getElementById('registerForm')?.addEventListener('submit', function(e) {
+        const username = document.getElementById('reg_username').value.trim();
+        const password = document.getElementById('reg_password').value;
+        const confirmPassword = document.getElementById('reg_confirm_password').value;
+        
+        if (!username || !password || !confirmPassword) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match');
+            return;
+        }
+        
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters');
+            return;
+        }
+    });
+
+    // Initialize form based on active form
+    {% if active_form == 'register' %}
+    switchAuthForm('register');
+    {% else %}
+    switchAuthForm('login');
+    {% endif %}
+</script>
+{% endblock %}

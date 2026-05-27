@@ -116,7 +116,7 @@ firebase-admin==6.6.0
 pyfcm==1.5.4
 
 # --- SMS Notifications (African providers) ---
-africastalking==3.5.1
+africastalking==2.0.2
 
 # --- Payment Integration (African providers) ---
 # Uncomment as needed:

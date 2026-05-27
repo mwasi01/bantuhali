@@ -1,0 +1,543 @@
+<!-- ============================================ -->
+<!-- BANTU HALII - ERROR PAGES -->
+<!-- templates/error.html -->
+<!-- ============================================ -->
+{% extends "base.html" %}
+
+{% block title %}Bantu Halii - {{ error_title or 'Error' }}{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-wrapper">
+        <!-- Error Animation -->
+        <div class="error-animation">
+            {% if error_code == 404 %}
+            <!-- 404 Animation - Lost in Africa -->
+            <div class="error-scene scene-404">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Compass -->
+                    <circle cx="150" cy="150" r="120" stroke="#4ECDC4" stroke-width="3" fill="none" class="compass-ring"/>
+                    <circle cx="150" cy="150" r="110" stroke="#4ECDC4" stroke-width="1" stroke-dasharray="5 5" fill="none" class="compass-inner"/>
+                    <!-- Compass needle -->
+                    <g class="compass-needle">
+                        <line x1="150" y1="150" x2="150" y2="50" stroke="#FF6B6B" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="150" y1="150" x2="150" y2="250" stroke="#45B7D1" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="150" cy="150" r="8" fill="#FFEAA7" stroke="#4ECDC4" stroke-width="2"/>
+                    </g>
+                    <!-- N S E W -->
+                    <text x="150" y="35" text-anchor="middle" fill="#FF6B6B" font-size="16" font-weight="bold">N</text>
+                    <text x="150" y="275" text-anchor="middle" fill="#45B7D1" font-size="16" font-weight="bold">S</text>
+                    <text x="265" y="155" text-anchor="middle" fill="#4ECDC4" font-size="16" font-weight="bold">E</text>
+                    <text x="35" y="155" text-anchor="middle" fill="#4ECDC4" font-size="16" font-weight="bold">W</text>
+                    <!-- Question marks floating -->
+                    <text x="100" y="100" text-anchor="middle" fill="#FFEAA7" font-size="40" class="float-text" opacity="0.6">?</text>
+                    <text x="200" y="200" text-anchor="middle" fill="#FFEAA7" font-size="30" class="float-text-delayed" opacity="0.4">?</text>
+                    <text x="130" y="220" text-anchor="middle" fill="#FFEAA7" font-size="25" class="float-text" opacity="0.5">?</text>
+                    <!-- Small Africa map outline -->
+                    <path d="M130 100 C140 90, 160 85, 170 95 C180 105, 175 120, 165 130 C155 140, 145 145, 140 135 C135 125, 120 110, 130 100 Z" 
+                          stroke="#45B7D1" stroke-width="1.5" fill="none" opacity="0.3" class="africa-outline"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 500 %}
+            <!-- 500 Animation - Server Down -->
+            <div class="error-scene scene-500">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Server rack -->
+                    <rect x="60" y="40" width="180" height="220" rx="10" stroke="#4ECDC4" stroke-width="3" fill="none" class="server-rack"/>
+                    <rect x="60" y="40" width="180" height="40" rx="10" fill="#4ECDC4" opacity="0.2"/>
+                    <!-- Blinking lights -->
+                    <circle cx="85" cy="60" r="8" fill="#FF6B6B" class="blink-light"/>
+                    <circle cx="115" cy="60" r="8" fill="#FFEAA7" class="blink-light-delayed"/>
+                    <circle cx="145" cy="60" r="8" fill="#FF6B6B" class="blink-light"/>
+                    <circle cx="175" cy="60" r="8" fill="#45B7D1" class="blink-light-delayed"/>
+                    <circle cx="205" cy="60" r="8" fill="#FF6B6B" class="blink-light"/>
+                    <!-- Server slots -->
+                    <rect x="80" y="100" width="140" height="30" rx="5" stroke="#45B7D1" stroke-width="2" fill="none"/>
+                    <rect x="80" y="145" width="140" height="30" rx="5" stroke="#45B7D1" stroke-width="2" fill="none"/>
+                    <rect x="80" y="190" width="140" height="30" rx="5" stroke="#FF6B6B" stroke-width="2" fill="none" class="error-slot"/>
+                    <!-- Warning triangle -->
+                    <polygon points="150,150 165,180 135,180" fill="#FF6B6B" class="warning-triangle"/>
+                    <text x="150" y="175" text-anchor="middle" fill="white" font-size="14" font-weight="bold">!</text>
+                    <!-- Smoke particles -->
+                    <circle cx="200" cy="80" r="5" fill="#999" opacity="0.3" class="smoke-particle"/>
+                    <circle cx="220" cy="70" r="7" fill="#999" opacity="0.2" class="smoke-particle-delayed"/>
+                    <circle cx="190" cy="65" r="4" fill="#999" opacity="0.25" class="smoke-particle"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 403 %}
+            <!-- 403 Animation - Lock -->
+            <div class="error-scene scene-403">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Lock body -->
+                    <rect x="100" y="140" width="100" height="120" rx="10" stroke="#FF6B6B" stroke-width="4" fill="none" class="lock-body"/>
+                    <!-- Lock shackle -->
+                    <path d="M120 140 V100 C120 70, 180 70, 180 100 V140" stroke="#FF6B6B" stroke-width="4" fill="none" class="lock-shackle"/>
+                    <!-- Keyhole -->
+                    <circle cx="150" cy="185" r="12" stroke="#FFEAA7" stroke-width="3" fill="none"/>
+                    <rect x="146" y="185" width="8" height="20" rx="2" fill="#FFEAA7"/>
+                    <!-- Denied symbol -->
+                    <circle cx="220" cy="80" r="35" stroke="#FF6B6B" stroke-width="4" fill="none" class="denied-circle"/>
+                    <line x1="200" y1="60" x2="240" y2="100" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="denied-line"/>
+                    <!-- Small locks floating -->
+                    <rect x="50" y="60" width="30" height="35" rx="5" stroke="#FF6B6B" stroke-width="2" fill="none" opacity="0.4" class="float-lock"/>
+                    <rect x="230" y="200" width="25" height="30" rx="5" stroke="#FF6B6B" stroke-width="2" fill="none" opacity="0.3" class="float-lock-delayed"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 401 %}
+            <!-- 401 Animation - Shield with Key -->
+            <div class="error-scene scene-401">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Shield -->
+                    <path d="M150 40 L250 80 L250 170 C250 230, 150 270, 150 270 C150 270, 50 230, 50 170 L50 80 Z" 
+                          stroke="#FFEAA7" stroke-width="3" fill="#4ECDC4" opacity="0.2" class="shield"/>
+                    <!-- Key icon beside shield -->
+                    <g class="key-icon">
+                        <circle cx="230" cy="130" r="15" stroke="#45B7D1" stroke-width="3" fill="none"/>
+                        <line x1="245" y1="130" x2="280" y2="130" stroke="#45B7D1" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="270" y1="125" x2="270" y2="135" stroke="#45B7D1" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="280" y1="125" x2="280" y2="135" stroke="#45B7D1" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <!-- Lock icon inside shield -->
+                    <rect x="130" y="150" width="40" height="45" rx="5" stroke="#FFEAA7" stroke-width="2" fill="none"/>
+                    <path d="M138 150 V135 C138 125, 162 125, 162 135 V150" stroke="#FFEAA7" stroke-width="2" fill="none"/>
+                    <circle cx="150" cy="168" r="5" stroke="#FFEAA7" stroke-width="1.5" fill="none"/>
+                    <line x1="150" y1="172" x2="150" y2="180" stroke="#FFEAA7" stroke-width="1.5"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 429 %}
+            <!-- 429 Animation - Hourglass -->
+            <div class="error-scene scene-429">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Hourglass -->
+                    <rect x="100" y="40" width="100" height="20" rx="5" stroke="#4ECDC4" stroke-width="3" fill="none"/>
+                    <path d="M120 60 L100 260 L200 260 L180 60 Z" stroke="#4ECDC4" stroke-width="3" fill="none" class="hourglass-body"/>
+                    <rect x="100" y="240" width="100" height="20" rx="5" stroke="#4ECDC4" stroke-width="3" fill="none"/>
+                    <!-- Sand -->
+                    <path d="M120 150 L100 260 L200 260 L180 150 Z" fill="#FFEAA7" opacity="0.6" class="sand-bottom"/>
+                    <path d="M120 60 L100 120 L200 120 L180 60 Z" fill="#FFEAA7" opacity="0.4" class="sand-top"/>
+                    <!-- Falling sand particles -->
+                    <circle cx="150" cy="130" r="2" fill="#FFEAA7" class="sand-particle"/>
+                    <circle cx="145" cy="145" r="2" fill="#FFEAA7" class="sand-particle-delayed"/>
+                    <circle cx="155" cy="140" r="1.5" fill="#FFEAA7" class="sand-particle"/>
+                    <!-- Clock face overlay -->
+                    <circle cx="150" cy="150" r="35" stroke="#FF6B6B" stroke-width="2" fill="none" opacity="0.5" class="clock-face"/>
+                    <line x1="150" y1="150" x2="150" y2="125" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" class="minute-hand" opacity="0.5"/>
+                    <line x1="150" y1="150" x2="165" y2="150" stroke="#FF6B6B" stroke-width="1.5" stroke-linecap="round" class="hour-hand" opacity="0.5"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 503 %}
+            <!-- 503 Animation - Maintenance -->
+            <div class="error-scene scene-503">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Wrench -->
+                    <g class="wrench">
+                        <circle cx="110" cy="110" r="30" stroke="#45B7D1" stroke-width="4" fill="none"/>
+                        <line x1="130" y1="130" x2="210" y2="210" stroke="#45B7D1" stroke-width="6" stroke-linecap="round"/>
+                    </g>
+                    <!-- Gear -->
+                    <g class="gear">
+                        <circle cx="200" cy="100" r="40" stroke="#4ECDC4" stroke-width="3" fill="none"/>
+                        <circle cx="200" cy="100" r="20" stroke="#4ECDC4" stroke-width="2" fill="none"/>
+                        <line x1="200" y1="60" x2="200" y2="50" stroke="#4ECDC4" stroke-width="3"/>
+                        <line x1="200" y1="140" x2="200" y2="150" stroke="#4ECDC4" stroke-width="3"/>
+                        <line x1="160" y1="100" x2="150" y2="100" stroke="#4ECDC4" stroke-width="3"/>
+                        <line x1="240" y1="100" x2="250" y2="100" stroke="#4ECDC4" stroke-width="3"/>
+                        <line x1="172" y1="72" x2="165" y2="65" stroke="#4ECDC4" stroke-width="2.5"/>
+                        <line x1="228" y1="128" x2="235" y2="135" stroke="#4ECDC4" stroke-width="2.5"/>
+                        <line x1="228" y1="72" x2="235" y2="65" stroke="#4ECDC4" stroke-width="2.5"/>
+                        <line x1="172" y1="128" x2="165" y2="135" stroke="#4ECDC4" stroke-width="2.5"/>
+                    </g>
+                    <!-- Construction barrier -->
+                    <rect x="50" y="230" width="200" height="20" rx="4" fill="#FFEAA7" opacity="0.8" class="barrier"/>
+                    <line x1="60" y1="240" x2="90" y2="240" stroke="#333" stroke-width="2" opacity="0.5"/>
+                    <line x1="100" y1="240" x2="130" y2="240" stroke="#333" stroke-width="2" opacity="0.5"/>
+                    <line x1="140" y1="240" x2="170" y2="240" stroke="#333" stroke-width="2" opacity="0.5"/>
+                    <line x1="180" y1="240" x2="210" y2="240" stroke="#333" stroke-width="2" opacity="0.5"/>
+                    <line x1="220" y1="240" x2="240" y2="240" stroke="#333" stroke-width="2" opacity="0.5"/>
+                </svg>
+            </div>
+            
+            {% elif error_code == 400 %}
+            <!-- 400 Animation - Puzzle -->
+            <div class="error-scene scene-400">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Puzzle pieces -->
+                    <path d="M80 60 L180 60 L180 120 L140 120 L140 140 L180 140 L180 200 L80 200 L80 140 L120 140 L120 120 L80 120 Z" 
+                          stroke="#FF6B6B" stroke-width="3" fill="none" class="puzzle-piece-1"/>
+                    <path d="M180 60 L280 60 L280 160 L240 160 L240 180 L280 180 L280 280 L180 280 L180 220 L220 220 L220 200 L180 200 Z" 
+                          stroke="#4ECDC4" stroke-width="3" fill="none" class="puzzle-piece-2"/>
+                    <path d="M80 200 L180 200 L180 280 L80 280 Z" 
+                          stroke="#FFEAA7" stroke-width="3" fill="none" class="puzzle-piece-3"/>
+                    <!-- Missing piece -->
+                    <path d="M140 120 L180 120 L180 140 L140 140 Z" 
+                          stroke="#45B7D1" stroke-width="2" fill="none" stroke-dasharray="4 4" class="missing-piece"/>
+                    <text x="160" y="135" text-anchor="middle" fill="#45B7D1" font-size="10">?</text>
+                </svg>
+            </div>
+            
+            {% elif error_code == 413 %}
+            <!-- 413 Animation - Elephant -->
+            <div class="error-scene scene-413">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Simple elephant outline -->
+                    <ellipse cx="150" cy="180" rx="80" ry="70" stroke="#4ECDC4" stroke-width="3" fill="none" class="elephant-body"/>
+                    <circle cx="150" cy="120" r="40" stroke="#4ECDC4" stroke-width="3" fill="none" class="elephant-head"/>
+                    <!-- Trunk -->
+                    <path d="M160 140 C180 150, 190 170, 185 190 C180 210, 170 215, 175 210" 
+                          stroke="#4ECDC4" stroke-width="3" fill="none" stroke-linecap="round" class="elephant-trunk"/>
+                    <!-- Ears -->
+                    <ellipse cx="115" cy="120" rx="25" ry="35" stroke="#4ECDC4" stroke-width="2.5" fill="none" class="elephant-ear"/>
+                    <ellipse cx="185" cy="115" rx="20" ry="30" stroke="#4ECDC4" stroke-width="2.5" fill="none" class="elephant-ear-2"/>
+                    <!-- Eyes -->
+                    <circle cx="140" cy="115" r="4" fill="#45B7D1"/>
+                    <circle cx="165" cy="115" r="4" fill="#45B7D1"/>
+                    <!-- Legs -->
+                    <rect x="110" y="240" width="20" height="40" rx="5" stroke="#4ECDC4" stroke-width="2.5" fill="none"/>
+                    <rect x="170" y="240" width="20" height="40" rx="5" stroke="#4ECDC4" stroke-width="2.5" fill="none"/>
+                    <!-- File icon -->
+                    <rect x="210" y="50" width="60" height="70" rx="5" stroke="#FF6B6B" stroke-width="2.5" fill="none" class="file-icon"/>
+                    <line x1="220" y1="65" x2="260" y2="65" stroke="#FF6B6B" stroke-width="2"/>
+                    <line x1="220" y1="78" x2="250" y2="78" stroke="#FF6B6B" stroke-width="2"/>
+                    <line x1="220" y1="91" x2="255" y2="91" stroke="#FF6B6B" stroke-width="2"/>
+                    <!-- X mark on file -->
+                    <line x1="225" y1="55" x2="255" y2="75" stroke="#FF6B6B" stroke-width="2.5" stroke-linecap="round" class="x-mark"/>
+                    <line x1="255" y1="55" x2="225" y2="75" stroke="#FF6B6B" stroke-width="2.5" stroke-linecap="round" class="x-mark-2"/>
+                </svg>
+            </div>
+            
+            {% else %}
+            <!-- Default Error Animation -->
+            <div class="error-scene scene-default">
+                <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="150" cy="150" r="100" stroke="#FF6B6B" stroke-width="3" fill="none" class="error-circle"/>
+                    <path d="M110 110 L190 190" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="error-x1"/>
+                    <path d="M190 110 L110 190" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="error-x2"/>
+                    <circle cx="150" cy="150" r="10" fill="#FFEAA7" class="error-dot"/>
+                </svg>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Error Content -->
+        <div class="error-content">
+            <div class="error-code-wrapper">
+                <h1 class="error-code">{{ error_code or 'Error' }}</h1>
+                <div class="error-code-shadow">{{ error_code or 'Error' }}</div>
+            </div>
+            
+            <h2 class="error-title">{{ error_title or 'Something went wrong' }}</h2>
+            
+            <p class="error-message">
+                {% if error_code == 404 %}
+                Oops! The page you're looking for seems to have wandered off into the African savanna. 
+                It might have been moved, deleted, or perhaps it's on an adventure across the Serengeti!
+                
+                {% elif error_code == 500 %}
+                Our servers are taking an unexpected siesta under the baobab tree. Our team of African 
+                tech wizards has been notified and is working to restore service faster than a cheetah on the hunt!
+                
+                {% elif error_code == 403 %}
+                Hold up! You don't have permission to access this area. It's like trying to enter 
+                a restricted wildlife reserve without proper authorization. Let's get you back to safer grounds!
+                
+                {% elif error_code == 401 %}
+                Authentication required! You need to log in to access this part of Bantu Halii. 
+                It's like trying to enter a community gathering without your membership card.
+                
+                {% elif error_code == 429 %}
+                Whoa there! You're moving faster than a gazelle! Please slow down and try again 
+                in a few moments. Our servers need a brief rest to serve you better.
+                
+                {% elif error_code == 503 %}
+                Bantu Halii is currently undergoing some upgrades to serve you better. 
+                We'll be back faster than you can say "Hakuna Matata"! 
+                Please check back soon.
+                
+                {% elif error_code == 400 %}
+                The request couldn't be understood. It's like trying to speak Swahili to someone 
+                who only knows Zulu! Let's try that again with clearer instructions.
+                
+                {% elif error_code == 413 %}
+                The file you're trying to upload is too large! Even an elephant would struggle 
+                to carry that one. Please try a smaller file or compress it first.
+                
+                {% else %}
+                {{ error_message or 'An unexpected error occurred. Our team has been notified and is working on a fix.' }}
+                {% endif %}
+            </p>
+
+            <!-- Error Actions -->
+            <div class="error-actions">
+                {% if error_code == 401 %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Login to Bantu Halii
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+                {% else %}
+                <button onclick="goBack()" class="btn btn-primary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                {% if current_user %}
+                <a href="{{ url_for('chat') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-comments"></i> My Chats
+                </a>
+                {% endif %}
+                <button onclick="location.reload()" class="btn btn-outline btn-lg">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Helpful Links -->
+            <div class="error-links">
+                <h4><i class="fas fa-life-ring"></i> Need Help?</h4>
+                <div class="help-links-grid">
+                    <a href="#" class="help-link-card">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help Center</span>
+                    </a>
+                    <a href="#" class="help-link-card">
+                        <i class="fas fa-headset"></i>
+                        <span>Contact Support</span>
+                    </a>
+                    <a href="#" class="help-link-card">
+                        <i class="fas fa-bug"></i>
+                        <span>Report Issue</span>
+                    </a>
+                    <a href="#" class="help-link-card">
+                        <i class="fas fa-book"></i>
+                        <span>FAQ</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- African Proverb -->
+            <div class="error-proverb">
+                <div class="proverb-icon">
+                    <i class="fas fa-quote-left"></i>
+                </div>
+                <p class="proverb-text" id="african-proverb">
+                    "If you want to go fast, go alone. If you want to go far, go together."
+                </p>
+                <span class="proverb-origin">— African Proverb</span>
+            </div>
+
+            <!-- Error Details (for debugging - only shown in development) -->
+            {% if config.DEBUG and error_details %}
+            <div class="error-details">
+                <button class="btn-text" onclick="toggleErrorDetails()">
+                    <i class="fas fa-code"></i> Technical Details
+                </button>
+                <pre class="error-trace" id="error-trace" style="display: none;">{{ error_details }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Animated Background Elements -->
+<div class="error-bg-elements">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+    <div class="bg-dot bg-dot-1"></div>
+    <div class="bg-dot bg-dot-2"></div>
+    <div class="bg-dot bg-dot-3"></div>
+    <div class="bg-dot bg-dot-4"></div>
+    <div class="bg-dot bg-dot-5"></div>
+    <div class="bg-line bg-line-1"></div>
+    <div class="bg-line bg-line-2"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Go back function
+    function goBack() {
+        if (document.referrer && document.referrer.includes(window.location.host)) {
+            window.history.back();
+        } else {
+            window.location.href = '/';
+        }
+    }
+
+    // Toggle error details
+    function toggleErrorDetails() {
+        const trace = document.getElementById('error-trace');
+        if (trace.style.display === 'none') {
+            trace.style.display = 'block';
+        } else {
+            trace.style.display = 'none';
+        }
+    }
+
+    // African proverbs rotation
+    const proverbs = [
+        '"If you want to go fast, go alone. If you want to go far, go together."',
+        '"Wisdom is like a baobab tree; no one individual can embrace it."',
+        '"The best time to plant a tree was 20 years ago. The second best time is now."',
+        '"A single bracelet does not jingle."',
+        '"When spiders unite, they can tie down a lion."',
+        '"Knowledge is like a garden: if it is not cultivated, it cannot be harvested."',
+        '"The fool speaks, the wise man listens."',
+        '"Rain does not fall on one roof alone."',
+        '"It takes a village to raise a child."',
+        '"However long the night, the dawn will break."',
+        '"Smooth seas do not make skillful sailors."',
+        '"The axe forgets but the tree remembers."',
+        '"A roaring lion kills no game."',
+        '"Do not look where you fell, but where you slipped."',
+        '"By crawling a child learns to stand."',
+        '"The lion does not turn around when a small dog barks."',
+        '"He who thinks he is leading and has no one following him is only taking a walk."',
+        '"No matter how long the night, the day is sure to come."',
+        '"A bird that flies off the earth and lands on an anthill is still on the ground."',
+        '"Only a fool tests the depth of a river with both feet."'
+    ];
+
+    let currentProverbIndex = Math.floor(Math.random() * proverbs.length);
+    const proverbElement = document.getElementById('african-proverb');
+
+    function rotateProverb() {
+        currentProverbIndex = (currentProverbIndex + 1) % proverbs.length;
+        if (proverbElement) {
+            proverbElement.style.opacity = '0';
+            proverbElement.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                proverbElement.textContent = proverbs[currentProverbIndex];
+                proverbElement.style.opacity = '1';
+                proverbElement.style.transform = 'translateY(0)';
+            }, 400);
+        }
+    }
+
+    // Rotate proverb every 12 seconds
+    setInterval(rotateProverb, 12000);
+
+    // Easter egg: Konami code for fun animation
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIndex = 0;
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === konamiCode[konamiIndex]) {
+            konamiIndex++;
+            if (konamiIndex === konamiCode.length) {
+                activateEasterEgg();
+                konamiIndex = 0;
+            }
+        } else {
+            konamiIndex = 0;
+        }
+    });
+
+    function activateEasterEgg() {
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#F7DC6F', '#BB8FCE'];
+        const container = document.querySelector('.error-container');
+        
+        if (!container) return;
+        
+        // Create confetti effect
+        for (let i = 0; i < 60; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.cssText = `
+                position: fixed;
+                width: ${Math.random() * 10 + 5}px;
+                height: ${Math.random() * 10 + 5}px;
+                background-color: ${colors[Math.floor(Math.random() * colors.length)]};
+                left: ${Math.random() * 100}%;
+                top: -10%;
+                z-index: 9999;
+                pointer-events: none;
+                animation: confettiFall ${Math.random() * 3 + 2}s ease-in forwards;
+                animation-delay: ${Math.random() * 2}s;
+                border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+            `;
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 5000);
+        }
+        
+        // Change the proverb
+        if (proverbElement) {
+            proverbElement.textContent = '"You found the hidden treasure! The true wealth of Africa is its people."';
+            proverbElement.style.color = '#FF6B6B';
+            proverbElement.style.fontWeight = '600';
+        }
+        
+        // Show a toast message
+        const toast = document.createElement('div');
+        toast.className = 'easter-egg-toast';
+        toast.innerHTML = '🎉 You discovered the Bantu Halii Easter Egg! 🥚';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Add confetti animation style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .easter-egg-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4ECDC4, #45B7D1);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Track error page views
+    console.log(`Bantu Halii Error Page: ${document.title}`);
+    
+    // Auto-redirect for temporary errors after 30 seconds
+    {% if error_code in [500, 503, 429] %}
+    let countdown = 30;
+    const redirectMessage = document.createElement('div');
+    redirectMessage.className = 'redirect-message';
+    redirectMessage.innerHTML = `
+        <i class="fas fa-clock"></i> 
+        Auto-refreshing in <span id="countdown-timer">${countdown}</span> seconds...
+    `;
+    document.querySelector('.error-content')?.appendChild(redirectMessage);
+    
+    const timerInterval = setInterval(() => {
+        countdown--;
+        const timerEl = document.getElementById('countdown-timer');
+        if (timerEl) timerEl.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(timerInterval);
+            location.reload();
+        }
+    }, 1000);
+    {% endif %}
+</script>
+{% endblock %}
